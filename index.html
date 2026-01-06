@@ -1,0 +1,1155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>I Love You <3</title>
+
+  <!-- Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --purple: #b98cff;
+      --bg0: #070612;
+      --bg2: #0b1230;
+      --frost-bg: rgba(26, 24, 40, 0.22);   /* slightly lighter */
+      --frost-border: rgba(255,255,255,0.075);
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #05040c;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      user-select: none;
+    }
+
+    /* Swirly background (more noticeable + extra left purple pool + faster) */
+    .bg {
+      position: fixed;
+      inset: -30%;
+      z-index: 0;
+      filter: blur(70px) saturate(135%);
+      transform: translateZ(0);
+      pointer-events: none;
+    }
+    .bg::before,
+    .bg::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background:
+        /* LEFT purple swirl (added) */
+        radial-gradient(950px 720px at 16% 46%, rgba(185,140,255,0.26), transparent 62%),
+        radial-gradient(820px 620px at 22% 22%, rgba(111,91,255,0.30), transparent 60%),
+
+        /* RIGHT purple swirl (existing, a bit stronger) */
+        radial-gradient(950px 720px at 82% 38%, rgba(185,140,255,0.28), transparent 62%),
+
+        radial-gradient(900px 800px at 50% 85%, rgba(11,18,48,0.65), transparent 60%),
+        radial-gradient(700px 600px at 20% 85%, rgba(33,10,58,0.60), transparent 58%),
+        radial-gradient(900px 700px at 85% 85%, rgba(10,10,29,0.75), transparent 62%),
+        linear-gradient(180deg, var(--bg0), var(--bg2));
+      opacity: 0.95;
+      animation: swirlA 5s ease-in-out infinite alternate;
+    }
+    .bg::after{
+      background:
+        /* LEFT companion highlight (added) */
+        radial-gradient(980px 760px at 18% 62%, rgba(111,91,255,0.18), transparent 62%),
+        radial-gradient(900px 700px at 30% 50%, rgba(111,91,255,0.20), transparent 60%),
+
+        /* RIGHT highlight */
+        radial-gradient(900px 700px at 70% 55%, rgba(185,140,255,0.18), transparent 62%),
+
+        radial-gradient(1100px 900px at 50% 50%, rgba(0,0,0,0.45), transparent 60%),
+        linear-gradient(180deg, rgba(7,6,18,1), rgba(7,6,18,1));
+      opacity: 0.85;
+      animation: swirlB 5s ease-in-out infinite alternate; /* change to 2s */
+      mix-blend-mode: screen;
+    }
+
+    @keyframes swirlA{
+      0%   { transform: translate(-12%, -10%) rotate(-7deg) scale(1.04); }
+      50%  { transform: translate(10%,   8%) rotate( 7deg) scale(1.09); }
+      100% { transform: translate(-9%,  12%) rotate(-6deg) scale(1.05); }
+    }
+
+    @keyframes swirlB{
+      0%   { transform: translate(12%,   9%) rotate( 8deg) scale(1.06); }
+      50%  { transform: translate(-11%, 12%) rotate(-7deg) scale(1.12); }
+      100% { transform: translate(10%, -10%) rotate( 6deg) scale(1.06); }
+    }
+
+    .vignette {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background: radial-gradient(circle at 50% 45%, transparent 40%, rgba(0,0,0,0.55) 78%, rgba(0,0,0,0.80) 100%);
+    }
+
+    /* Stars canvas */
+    #stars {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    /* Header overlay (above bubbles). Perfect horizontal centering via left:50% */
+    #headerLayer{
+      position: fixed;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 22px 20px 10px;
+      pointer-events: none;
+    }
+
+    /* Timer: keep “normal size” but stop per-digit width jitter (tabular nums). */
+    #timer {
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      font-size: clamp(28px, 3.8vw, 56px);
+      color: color-mix(in srgb, var(--purple) 70%, black);
+
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.10);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.14);
+
+      /* frosted */
+      backdrop-filter: blur(5px) saturate(140%) brightness(1.15);
+      -webkit-backdrop-filter: blur(5px) saturate(140%) brightness(1.15);
+
+      max-width: min(92vw, 980px);
+      white-space: nowrap;
+      text-align: center;
+
+      /* Prevent “1 vs 8” width wobble */
+      font-variant-numeric: tabular-nums;
+      font-feature-settings: "tnum" 1;
+
+      text-shadow: 0 10px 28px rgba(0,0,0,0.38);
+      transform: translateZ(0);
+      display: inline-block;
+    }
+
+    #note {
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 25px;
+      color: rgba(190,190,215,0.72);
+      background: rgba(255, 255, 255, 0.10);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.14);
+
+      backdrop-filter: blur(5px) saturate(140%) brightness(1.15);
+      -webkit-backdrop-filter: blur(5px) saturate(140%) brightness(1.15);
+
+      max-width: min(92vw, 980px);
+      text-align: center;
+      pointer-events: none;
+      display: inline-block;
+    }
+    #note em { font-style: italic; }
+
+
+    /* Map layer (behind bubbles), centered between note-bottom and screen-bottom */
+    #mapLayer{
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 0;
+      z-index: 3;
+      margin-top: -15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      width: 100%;
+    }
+
+    .mapShell {
+      width: min(62vmin, 640px);
+      aspect-ratio: 1 / 1;
+      position: relative;
+      border-radius: 999px;
+
+      background: radial-gradient(circle at 50% 50%,
+        rgba(255,255,255,0.04) 0%,
+        rgba(10, 8, 18, 0.10) 48%,
+        rgba(10, 8, 18, 0.62) 100%
+      );
+
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow:
+        0 30px 90px rgba(0,0,0,0.55),
+        inset 0 0 0 1px rgba(255,255,255,0.06);
+      overflow: hidden;
+      transform: translateZ(0);
+    }
+
+    .mapShell::before{
+      content:"";
+      position:absolute;
+      inset:-22%;
+      background: radial-gradient(circle,
+        rgba(185,140,255,0.28) 0%,
+        rgba(185,140,255,0.12) 40%,
+        rgba(185,140,255,0.00) 66%
+      );
+      filter: blur(18px);
+      pointer-events:none;
+      opacity: 0.98;
+    }
+
+    .mapShell::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: radial-gradient(circle at center,
+        rgba(10,8,18,0.00) 56%,
+        rgba(10,8,18,0.74) 88%,
+        rgba(10,8,18,0.92) 100%
+      );
+      pointer-events:none;
+    }
+
+    .mapImg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 999px;
+      -webkit-mask-image: radial-gradient(circle at center, rgba(0,0,0,1) 55%, rgba(0,0,0,0.0) 78%);
+      mask-image: radial-gradient(circle at center, rgba(0,0,0,1) 55%, rgba(0,0,0,0.0) 78%);
+      filter: contrast(1.02) saturate(1.05);
+      pointer-events: none;
+      user-drag: none;
+      -webkit-user-drag: none;
+    }
+
+    /* Single-piece red heart (SVG) */
+    .heartSvg{
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 25px;
+      height: 25px;
+      transform: translate(-50%, -50%) scale(0.95);
+      transform-origin: center;
+      opacity: 0.78;
+      animation: heartbeat 1.2s ease-in-out infinite;
+      pointer-events: none;
+      z-index: 10;
+      filter: drop-shadow(0 6px 14px rgba(0,0,0,0.40));
+    }
+    @keyframes heartbeat{
+      0%   { transform: translate(-50%, -50%) scale(0.92); }
+      12%  { transform: translate(-50%, -50%) scale(1.10); }
+      24%  { transform: translate(-50%, -50%) scale(0.98); }
+      40%  { transform: translate(-50%, -50%) scale(1.06); }
+      60%  { transform: translate(-50%, -50%) scale(0.94); }
+      100% { transform: translate(-50%, -50%) scale(0.92); }
+    }
+
+    /* Bubbles layer (above map, below header) */
+    #bubbleLayer {
+      position: fixed;
+      inset: 0;
+      z-index: 4;
+      pointer-events: none;
+      contain: strict;
+    }
+
+    .bubble {
+      position: absolute;
+      width: 77px;
+      height: 77px;
+      border-radius: 999px;
+      pointer-events: auto;
+      touch-action: none;
+      cursor: grab;
+      transform: translate3d(0,0,0);
+      will-change: transform;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.16);
+      box-shadow: 0 10px 28px rgba(0,0,0,0.55);
+      overflow: hidden;
+    }
+    .bubble:active { cursor: grabbing; }
+
+    .bubble .img {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      border-radius: 999px;
+      -webkit-mask-image: radial-gradient(circle at center, rgba(0,0,0,1) 72%, rgba(0,0,0,0.0) 98%);
+      mask-image: radial-gradient(circle at center, rgba(0,0,0,1) 72%, rgba(0,0,0,0.0) 98%);
+    }
+
+    .bubble::after{
+      content:"";
+      position:absolute;
+      inset:-18%;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.18), transparent 58%);
+      transform: rotate(18deg);
+      pointer-events:none;
+      opacity: 0.55;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="bg"></div>
+  <canvas id="stars"></canvas>
+  <div class="vignette"></div>
+
+  <div id="mapLayer">
+    <div class="mapShell" id="mapShell" aria-hidden="true">
+      <img class="mapImg" src="map.png" alt="" draggable="false" />
+      <svg class="heartSvg" viewBox="0 0 32 29.6" aria-hidden="true">
+        <path fill="rgba(255,70,70,0.82)"
+          d="M23.6,0c-3,0-5.6,1.6-7.6,4C14,1.6,11.4,0,8.4,0C3.8,0,0,3.8,0,8.4
+             c0,4.1,2.2,7.7,5.6,10.6l10.4,10.6l10.4-10.6c3.4-2.9,5.6-6.5,5.6-10.6
+             C32,3.8,28.2,0,23.6,0z"/>
+      </svg>
+    </div>
+  </div>
+
+  <div id="bubbleLayer"></div>
+
+  <div id="headerLayer">
+    <div id="timer">0</div>
+    <div id="note"><em>Merry Christmas, My Love</em></div>
+  </div>
+
+  <script>
+    (() => {
+      // ---------------- Timer ----------------
+      const timerEl = document.getElementById('timer');
+      const noteEl = document.getElementById('note');
+      const headerLayer = document.getElementById('headerLayer');
+
+      const start = new Date('2025-08-29T16:06:47-04:00').getTime();
+      const fmt = (n) => n.toLocaleString(undefined, { maximumFractionDigits: 0 });
+
+      function updateTimer() {
+        const secs = Math.max(0, ((Date.now() - start) / 1000) | 0);
+        timerEl.textContent = fmt(secs);
+      }
+      updateTimer();
+      setInterval(updateTimer, 250);
+
+      // ---------------- Stars (double twinkle freq + 1.5x bigger) ----------------
+      const starCanvas = document.getElementById('stars');
+      const sctx = starCanvas.getContext('2d', { alpha: true });
+      const stars = [];
+
+      function resizeStars() {
+        const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+        starCanvas.width = (window.innerWidth * dpr) | 0;
+        starCanvas.height = (window.innerHeight * dpr) | 0;
+        starCanvas.style.width = window.innerWidth + 'px';
+        starCanvas.style.height = window.innerHeight + 'px';
+        sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        stars.length = 0;
+        const count = (((window.innerWidth * window.innerHeight) / 15000) * 2) | 0;
+
+        for (let i = 0; i < count; i++) {
+          const base = (0.75 + Math.random() * 1.85) * 1.1; // 1.1x bigger
+          stars.push({
+            x: Math.random() * window.innerWidth,
+            y: Math.random() * window.innerHeight,
+            r: base,
+            a: 0.18 + Math.random() * 0.55,
+            w: 0.35 + Math.random() * 0.85,
+            p: Math.random() * Math.PI * 2
+          });
+        }
+      }
+
+      function drawStars(t) {
+        sctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+        const tt = t * 0.002; // doubled frequency
+        for (let i = 0; i < stars.length; i++) {
+          const st = stars[i];
+          const tw = 0.55 + 0.45 * Math.sin(tt * st.w + st.p);
+          const alpha = st.a * tw;
+
+          const rp = st.r * (0.90 + 0.40 * tw);
+          const rg = st.r * (2.2 + 1.0 * tw);
+
+          sctx.beginPath();
+          sctx.arc(st.x, st.y, rp, 0, Math.PI * 2);
+          sctx.fillStyle = `rgba(255,255,255,${alpha})`;
+          sctx.fill();
+
+          sctx.beginPath();
+          sctx.arc(st.x, st.y, rg, 0, Math.PI * 2);
+          sctx.fillStyle = `rgba(185,140,255,${alpha * 0.18})`;
+          sctx.fill();
+        }
+      }
+
+      // ---------------- Layout ----------------
+      const mapLayer = document.getElementById('mapLayer');
+      const mapShell = document.getElementById('mapShell');
+
+      function updateMapLayerBounds() {
+        const hr = headerLayer.getBoundingClientRect();
+        const top = hr.bottom;
+        mapLayer.style.top = top + 'px';
+        mapLayer.style.height = Math.max(0, window.innerHeight - top) + 'px';
+      }
+
+      // ---------------- Bubble physics ----------------
+      const bubbleLayer = document.getElementById('bubbleLayer');
+
+      const bubbles = [];
+      const BUBBLE_SIZE = 77;
+      const BUBBLE_R = BUBBLE_SIZE / 2;
+
+      // Obstacles updated occasionally
+      let mapCircle = { cx: 0, cy: 0, r: 0 };
+      let timerCircle = { cx: 0, cy: 0, r: 0 };
+      let noteCircle  = { cx: 0, cy: 0, r: 0 };
+
+      function rectToCircle(rect, pad) {
+        const w = rect.width, h = rect.height;
+        return {
+          cx: rect.left + w * 0.5,
+          cy: rect.top  + h * 0.5,
+          r:  0.5 * Math.max(w, h) + pad
+        };
+      }
+
+      function updateObstacles() {
+        const mr = mapShell.getBoundingClientRect();
+        mapCircle.cx = mr.left + mr.width * 0.5;
+        mapCircle.cy = mr.top + mr.height * 0.5;
+        mapCircle.r  = (Math.min(mr.width, mr.height) * 0.5);
+
+        timerCircle = rectToCircle(timerEl.getBoundingClientRect(), 12);
+        noteCircle  = rectToCircle(noteEl.getBoundingClientRect(), 12);
+      }
+
+      function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+
+      function repulseFromCircle(b, cx, cy, cr, softRange, strength) {
+        const dx = b.x - cx;
+        const dy = b.y - cy;
+        const dist = Math.hypot(dx, dy) || 1e-6;
+        const target = cr + BUBBLE_R + softRange;
+        if (dist < target) {
+          const t = (target - dist) / softRange;
+          const f = strength * (t * t);
+          const nx = dx / dist, ny = dy / dist;
+          b.ax += nx * f;
+          b.ay += ny * f;
+        }
+      }
+
+      function repulseFromEdges(b, softRange, strength) {
+        const w = window.innerWidth, h = window.innerHeight;
+
+        const leftDist   = b.x - BUBBLE_R;
+        const rightDist  = (w - (b.x + BUBBLE_R));
+        const topDist    = b.y - BUBBLE_R;
+        const bottomDist = (h - (b.y + BUBBLE_R));
+
+        if (leftDist < softRange)  b.ax += strength * ((softRange - leftDist) / softRange) ** 2;
+        if (rightDist < softRange) b.ax -= strength * ((softRange - rightDist) / softRange) ** 2;
+        if (topDist < softRange)   b.ay += strength * ((softRange - topDist) / softRange) ** 2;
+        if (bottomDist < softRange)b.ay -= strength * ((softRange - bottomDist) / softRange) ** 2;
+      }
+
+      // Image discovery: images/image1.png, image2.png, ...
+      async function discoverImages() {
+        const res = await fetch('./images.txt', { cache: 'no-store' });
+        if (!res.ok) throw new Error(`Failed to load images/images.txt (${res.status})`);
+
+        const text = await res.text();
+
+        const lines = text
+          .split(/\r?\n/)
+          .map(s => s.trim())
+          .filter(s => s.length > 0 && !s.startsWith('#'));
+
+        // Convert to data URLs if needed
+        const found = lines.map(line => {
+          if (line.startsWith('data:')) return line;
+          return `data:image/png;base64,${line}`;
+        });
+
+        return found;
+      }
+
+
+
+      // Re-usable spatial grid
+      const grid = new Map();      // key:number -> number[]
+      const usedKeys = [];
+      const CELL = 145;
+
+      function gridKey(gx, gy) {
+        return ((gx & 0xffff) << 16) | (gy & 0xffff);
+      }
+
+      function gridBegin() {
+        for (let i = 0; i < usedKeys.length; i++) {
+          const k = usedKeys[i];
+          const bucket = grid.get(k);
+          if (bucket) bucket.length = 0;
+        }
+        usedKeys.length = 0;
+      }
+
+      function gridInsert(index) {
+        const b = bubbles[index];
+        const gx = (b.x / CELL) | 0;
+        const gy = (b.y / CELL) | 0;
+        const k = gridKey(gx, gy);
+
+        let bucket = grid.get(k);
+        if (!bucket) {
+          bucket = [];
+          grid.set(k, bucket);
+          usedKeys.push(k);
+        } else if (bucket.length === 0) {
+          usedKeys.push(k);
+        }
+        bucket.push(index);
+      }
+
+
+      function collideResolve() {
+        const minDist = (BUBBLE_R + BUBBLE_R + 6);
+        const minDist2 = minDist * minDist;
+
+        // NEW: very light repulsion when bubbles are basically touching
+        // (only when neither bubble is being dragged)
+        const repelRange = 10;                 // only within ~10px beyond collision distance
+        const repelDist = minDist + repelRange;
+        const repelDist2 = repelDist * repelDist;
+        const repelImpulse = 4.0;              // px/s max; keep small so they can still “touch”
+
+        const restitution = 0.18;
+        const velDamp = 0.94;
+
+        for (let i = 0; i < bubbles.length; i++) {
+          const b1 = bubbles[i];
+          const gx = (b1.x / CELL) | 0;
+          const gy = (b1.y / CELL) | 0;
+
+          for (let oy = -1; oy <= 1; oy++) {
+            for (let ox = -1; ox <= 1; ox++) {
+              const k = gridKey(gx + ox, gy + oy);
+              const bucket = grid.get(k);
+              if (!bucket || bucket.length === 0) continue;
+
+              for (let bi = 0; bi < bucket.length; bi++) {
+                const j = bucket[bi];
+                if (j <= i) continue;
+
+                const b2 = bubbles[j];
+                const dx = b2.x - b1.x;
+                const dy = b2.y - b1.y;
+                const d2 = dx * dx + dy * dy;
+
+                // Only consider pairs close enough for touch-repulsion OR collision.
+                if (d2 >= repelDist2) continue;
+
+                const dist = Math.sqrt(d2) || 1e-6;
+                const nx = dx / dist;
+                const ny = dy / dist;
+
+                const b1Drag = b1.drag.active;
+                const b2Drag = b2.drag.active;
+
+                // NEW: gentle separation when nearly touching (never applied to dragged bubbles)
+                if (!b1Drag && !b2Drag) {
+                  const t = clamp((repelDist - dist) / repelRange, 0, 1);
+                  if (t > 0) {
+                    const f = repelImpulse * (t * t);
+                    b1.vx -= nx * f; b1.vy -= ny * f;
+                    b2.vx += nx * f; b2.vy += ny * f;
+                  }
+                }
+
+                // If not actually colliding, we're done (only the gentle repulsion applied).
+                if (d2 >= minDist2) continue;
+
+                const pen = (minDist - dist);
+
+                // Don't let collisions yank a dragged bubble; push the other bubble away.
+                if (b1Drag && !b2Drag) {
+                  b2.x += nx * pen; b2.y += ny * pen;
+                  b2.vx += nx * pen * 10; b2.vy += ny * pen * 10;
+                  b2.vx *= velDamp; b2.vy *= velDamp;
+                  continue;
+                }
+                if (b2Drag && !b1Drag) {
+                  b1.x -= nx * pen; b1.y -= ny * pen;
+                  b1.vx -= nx * pen * 10; b1.vy -= ny * pen * 10;
+                  b1.vx *= velDamp; b1.vy *= velDamp;
+                  continue;
+                }
+                if (b1Drag && b2Drag) continue;
+
+                // Normal collision
+                const move = pen * 0.5;
+                b1.x -= nx * move; b1.y -= ny * move;
+                b2.x += nx * move; b2.y += ny * move;
+
+                const rvx = b2.vx - b1.vx;
+                const rvy = b2.vy - b1.vy;
+                const rel = rvx * nx + rvy * ny;
+
+                if (rel < 0) {
+                  const jimp = -(1 + restitution) * rel * 0.5;
+                  b1.vx -= nx * jimp; b1.vy -= ny * jimp;
+                  b2.vx += nx * jimp; b2.vy += ny * jimp;
+                }
+
+                b1.vx *= velDamp; b1.vy *= velDamp;
+                b2.vx *= velDamp; b2.vy *= velDamp;
+              }
+            }
+          }
+        }
+      }
+
+
+
+      function shuffle(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = (Math.random() * (i + 1)) | 0;
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+      }
+
+      function isForbiddenSpawn(x, y) {
+        // Keep spawns off the map (and also off the timer/note), since those repel anyway.
+        const mapPad = 14;
+        const textPad = 8;
+
+        const dm = Math.hypot(x - mapCircle.cx, y - mapCircle.cy);
+        if (dm < (mapCircle.r + BUBBLE_R + mapPad)) return true;
+
+        const dt = Math.hypot(x - timerCircle.cx, y - timerCircle.cy);
+        if (dt < (timerCircle.r + BUBBLE_R + textPad)) return true;
+
+        const dn = Math.hypot(x - noteCircle.cx, y - noteCircle.cy);
+        if (dn < (noteCircle.r + BUBBLE_R + textPad)) return true;
+
+        return false;
+      }
+
+function generateInitialPositions(count) {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+
+  const x0 = BUBBLE_R + 8, x1 = w - BUBBLE_R - 8;
+  const y0 = BUBBLE_R + 8, y1 = h - BUBBLE_R - 8;
+
+  // Split into two vertical halves, keeping a small safety margin so bubbles start on their side.
+  const mid = w * 0.5;
+  const splitPad = BUBBLE_R + 6;
+
+  const lx0 = x0;
+  const lx1 = Math.min(x1, mid - splitPad);
+
+  const rx0 = Math.max(x0, mid + splitPad);
+  const rx1 = x1;
+
+  // If screen is too narrow for a clean split, fall back to full-area placement.
+  if (lx1 <= lx0 || rx1 <= rx0) {
+    // (This is basically your old behavior)
+    return (function fallbackFull() {
+      const aspect = w / Math.max(1, h);
+      const cols = Math.max(1, Math.ceil(Math.sqrt(count * aspect)));
+      const rows = Math.max(1, Math.ceil(count / cols));
+      const cellW = w / cols;
+      const cellH = h / rows;
+
+      const cells = [];
+      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) cells.push([c, r]);
+      shuffle(cells);
+
+      const out = new Array(count);
+      let ci = 0;
+
+      for (let i = 0; i < count; i++) {
+        let placed = false;
+
+        for (let tries = 0; tries < 12 && !placed; tries++) {
+          if (ci >= cells.length) ci = 0;
+          const [c, r] = cells[ci++];
+
+          const rx = (c + Math.random()) * cellW;
+          const ry = (r + Math.random()) * cellH;
+          const x = clamp(rx, x0, x1);
+          const y = clamp(ry, y0, y1);
+
+          if (!isForbiddenSpawn(x, y)) {
+            out[i] = { x, y };
+            placed = true;
+          }
+        }
+
+        if (!placed) {
+          for (let tries = 0; tries < 80; tries++) {
+            const x = x0 + Math.random() * (x1 - x0);
+            const y = y0 + Math.random() * (y1 - y0);
+            if (!isForbiddenSpawn(x, y)) {
+              out[i] = { x, y };
+              placed = true;
+              break;
+            }
+          }
+        }
+
+        if (!placed) {
+          out[i] = {
+            x: x0 + Math.random() * (x1 - x0),
+            y: y0 + Math.random() * (y1 - y0),
+          };
+        }
+      }
+
+      return out;
+    })();
+  }
+
+  function generateInRect(n, rx0, rx1, ry0, ry1) {
+    const rw = rx1 - rx0;
+    const rh = ry1 - ry0;
+
+    // Stratified grid sampling within the rectangle
+    const aspect = rw / Math.max(1, rh);
+    const cols = Math.max(1, Math.ceil(Math.sqrt(n * aspect)));
+    const rows = Math.max(1, Math.ceil(n / cols));
+    const cellW = rw / cols;
+    const cellH = rh / rows;
+
+    const cells = [];
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) cells.push([c, r]);
+    shuffle(cells);
+
+    const out = new Array(n);
+    let ci = 0;
+
+    for (let i = 0; i < n; i++) {
+      let placed = false;
+
+      // Try stratified jitter picks first
+      for (let tries = 0; tries < 12 && !placed; tries++) {
+        if (ci >= cells.length) ci = 0;
+        const [c, r] = cells[ci++];
+
+        const x = clamp(rx0 + (c + Math.random()) * cellW, rx0, rx1);
+        const y = clamp(ry0 + (r + Math.random()) * cellH, ry0, ry1);
+
+        if (!isForbiddenSpawn(x, y)) {
+          out[i] = { x, y };
+          placed = true;
+        }
+      }
+
+      // Fallback: rejection sampling in this half
+      if (!placed) {
+        for (let tries = 0; tries < 80; tries++) {
+          const x = rx0 + Math.random() * (rx1 - rx0);
+          const y = ry0 + Math.random() * (ry1 - ry0);
+          if (!isForbiddenSpawn(x, y)) {
+            out[i] = { x, y };
+            placed = true;
+            break;
+          }
+        }
+      }
+
+      // Absolute fallback: allow anywhere in this half
+      if (!placed) {
+        out[i] = {
+          x: rx0 + Math.random() * (rx1 - rx0),
+          y: ry0 + Math.random() * (ry1 - ry0),
+        };
+      }
+    }
+
+    return out;
+  }
+
+  const leftCount = (count + 1) >> 1;  // left gets the extra if odd
+  const rightCount = count >> 1;
+
+  const left = generateInRect(leftCount, lx0, lx1, y0, y1);
+  const right = generateInRect(rightCount, rx0, rx1, y0, y1);
+
+  // Interleave so image order doesn't put all left-side bubbles first
+  const positions = [];
+  const m = Math.max(left.length, right.length);
+  for (let i = 0; i < m; i++) {
+    if (i < left.length) positions.push(left[i]);
+    if (i < right.length) positions.push(right[i]);
+  }
+
+  return positions;
+}
+
+      function makeBubble(src, pos) {
+        const el = document.createElement('div');
+        el.className = 'bubble';
+
+        const img = document.createElement('div');
+        img.className = 'img';
+        img.style.backgroundImage = `url("${src}")`;
+        el.appendChild(img);
+
+        const b = {
+          el,
+          px: 0, py: 0,
+
+          // NEW: use provided initial position (already spread out)
+          x: clamp(pos.x, BUBBLE_R + 8, window.innerWidth - BUBBLE_R - 8),
+          y: clamp(pos.y, BUBBLE_R + 8, window.innerHeight - BUBBLE_R - 8),
+
+          vx: (Math.random() * 2 - 1) * 22,
+          vy: (Math.random() * 2 - 1) * 22,
+          ax: 0,
+          ay: 0,
+
+          // wander targets
+          wvx: (Math.random() * 2 - 1) * 35,
+          wvy: (Math.random() * 2 - 1) * 35,
+          nextWander: 0,
+
+          // coast after release: no random motion until it has actually settled
+          coasting: false,
+          coastStill: 0, // time spent below stop speed
+
+          drag: {
+            active: false,
+            pointerId: null,
+            offsetX: 0,
+            offsetY: 0,
+            targetX: 0,
+            targetY: 0,
+            lastX: 0,
+            lastY: 0,
+            lastT: 0,
+            vxFilt: 0,
+            vyFilt: 0
+          }
+        };
+
+        el.addEventListener('pointerdown', (e) => {
+          el.setPointerCapture(e.pointerId);
+
+          const now = performance.now();
+          b.drag.active = true;
+          b.drag.pointerId = e.pointerId;
+
+          // interrupt coasting immediately when grabbed
+          b.coasting = false;
+          b.coastStill = 0;
+
+          b.drag.offsetX = b.x - e.clientX;
+          b.drag.offsetY = b.y - e.clientY;
+
+          b.drag.targetX = e.clientX + b.drag.offsetX;
+          b.drag.targetY = e.clientY + b.drag.offsetY;
+
+          b.drag.lastX = e.clientX;
+          b.drag.lastY = e.clientY;
+          b.drag.lastT = now;
+
+          b.drag.vxFilt = 0;
+          b.drag.vyFilt = 0;
+
+          b.vx *= 0.7;
+          b.vy *= 0.7;
+        });
+
+        el.addEventListener('pointermove', (e) => {
+          if (!b.drag.active || e.pointerId !== b.drag.pointerId) return;
+
+          const now = performance.now();
+          const dtms = Math.max(1, now - b.drag.lastT);
+
+          const dx = e.clientX - b.drag.lastX;
+          const dy = e.clientY - b.drag.lastY;
+
+          const vx = (dx / dtms) * 1000;
+          const vy = (dy / dtms) * 1000;
+
+          const a = 0.22;
+          b.drag.vxFilt = b.drag.vxFilt * (1 - a) + vx * a;
+          b.drag.vyFilt = b.drag.vyFilt * (1 - a) + vy * a;
+
+          b.drag.targetX = e.clientX + b.drag.offsetX;
+          b.drag.targetY = e.clientY + b.drag.offsetY;
+
+          b.drag.lastX = e.clientX;
+          b.drag.lastY = e.clientY;
+          b.drag.lastT = now;
+        });
+
+        const endDrag = (e) => {
+          if (e.pointerId !== b.drag.pointerId) return;
+
+          b.drag.active = false;
+          b.drag.pointerId = null;
+
+          // carry inertia forward
+          const maxRelease = 780;
+          b.vx = clamp(b.drag.vxFilt, -maxRelease, maxRelease);
+          b.vy = clamp(b.drag.vyFilt, -maxRelease, maxRelease);
+
+          // Enter coasting: suppress random steering until it slows + stays slow a bit.
+          b.coasting = true;
+          b.coastStill = 0;
+          b.nextWander = Infinity;
+        };
+
+        el.addEventListener('pointerup', endDrag);
+        el.addEventListener('pointercancel', endDrag);
+        el.addEventListener('lostpointercapture', () => {
+          b.drag.active = false;
+          b.drag.pointerId = null;
+        });
+
+        b.px = b.x; b.py = b.y;
+        bubbles.push(b);
+        return el;
+      }
+
+      // Fixed timestep with interpolation
+      let lastT = performance.now();
+      let acc = 0;
+      const FIXED = 1 / 120;
+      const MAX_STEPS = 4;
+      let obstacleTimer = 0;
+
+      function step(dt, nowMs) {
+        const steer = 2.6;
+        const drag = 1.9;
+
+        const softRange = 115;
+        const edgeStrength = 210;
+
+        // map repulsion unchanged
+        const mapStrength = 320;
+
+        // text repulsion: just a nudge (weaker + shorter range)
+        const textSoftRange = 65;
+        const textStrength = 70;
+
+        // Drag tuning (unchanged feel)
+        const springK = 340;
+        const springD = 42;
+        const leadT   = 0.085;
+        const dragSubsteps = 3;
+
+        // coasting behavior
+        const stopSpeed = 10;                     // px/s threshold
+        const stopSpeed2 = stopSpeed * stopSpeed;
+        const stopHold = 0.35;                    // must stay slow this long before wander resumes
+        const maxVNormal = 80;
+        const maxVCoast  = 780;                   // IMPORTANT: don't clamp coasting to 130
+
+        // update wander targets (only if not dragged AND not coasting)
+        for (let i = 0; i < bubbles.length; i++) {
+          const b = bubbles[i];
+          if (b.drag.active || b.coasting) continue;
+
+          if (nowMs >= b.nextWander) {
+            const a = Math.random() * Math.PI * 2;
+            const sp = 22 + Math.random() * 30;
+            b.wvx = Math.cos(a) * sp;
+            b.wvy = Math.sin(a) * sp;
+            b.nextWander = nowMs + (1400 + Math.random() * 2400);
+          }
+        }
+
+        for (let i = 0; i < bubbles.length; i++) {
+          const b = bubbles[i];
+          b.px = b.x; b.py = b.y;
+
+          if (b.drag.active) {
+            const sdt = dt / dragSubsteps;
+            for (let k = 0; k < dragSubsteps; k++) {
+              b.ax = 0; b.ay = 0;
+
+              const tx = b.drag.targetX + b.drag.vxFilt * leadT;
+              const ty = b.drag.targetY + b.drag.vyFilt * leadT;
+
+              b.ax += springK * (tx - b.x) - springD * b.vx;
+              b.ay += springK * (ty - b.y) - springD * b.vy;
+
+              repulseFromEdges(b, 90, edgeStrength);
+              repulseFromCircle(b, mapCircle.cx, mapCircle.cy, mapCircle.r, softRange, mapStrength);
+              repulseFromCircle(b, timerCircle.cx, timerCircle.cy, timerCircle.r, textSoftRange, textStrength);
+              repulseFromCircle(b, noteCircle.cx,  noteCircle.cy,  noteCircle.r,  textSoftRange, textStrength);
+
+              b.vx += b.ax * sdt;
+              b.vy += b.ay * sdt;
+
+              const damp = 1 / (1 + drag * sdt);
+              b.vx *= damp;
+              b.vy *= damp;
+
+              const mv = 780;
+              b.vx = clamp(b.vx, -mv, mv);
+              b.vy = clamp(b.vy, -mv, mv);
+
+              b.x += b.vx * sdt;
+              b.y += b.vy * sdt;
+
+              b.x = clamp(b.x, BUBBLE_R + 2, window.innerWidth  - BUBBLE_R - 2);
+              b.y = clamp(b.y, BUBBLE_R + 2, window.innerHeight - BUBBLE_R - 2);
+            }
+            continue;
+          }
+
+          // non-drag
+          b.ax = 0; b.ay = 0;
+
+          // If coasting: no random steering; pure inertial glide + damping + collisions/repulsion.
+          if (!b.coasting) {
+            b.ax += (b.wvx - b.vx) * steer;
+            b.ay += (b.wvy - b.vy) * steer;
+          }
+
+          repulseFromEdges(b, 90, edgeStrength);
+          repulseFromCircle(b, mapCircle.cx, mapCircle.cy, mapCircle.r, softRange, mapStrength);
+          repulseFromCircle(b, timerCircle.cx, timerCircle.cy, timerCircle.r, textSoftRange, textStrength);
+          repulseFromCircle(b, noteCircle.cx,  noteCircle.cy,  noteCircle.r,  textSoftRange, textStrength);
+
+          b.vx += b.ax * dt;
+          b.vy += b.ay * dt;
+
+          const damp = 1 / (1 + drag * dt);
+          b.vx *= damp;
+          b.vy *= damp;
+
+          const mv = b.coasting ? maxVCoast : maxVNormal;
+          b.vx = clamp(b.vx, -mv, mv);
+          b.vy = clamp(b.vy, -mv, mv);
+
+          b.x += b.vx * dt;
+          b.y += b.vy * dt;
+
+          b.x = clamp(b.x, BUBBLE_R + 2, window.innerWidth  - BUBBLE_R - 2);
+          b.y = clamp(b.y, BUBBLE_R + 2, window.innerHeight - BUBBLE_R - 2);
+
+          // Resume random drifting only after it has stayed "stopped" for a bit.
+          if (b.coasting) {
+            const s2 = b.vx*b.vx + b.vy*b.vy;
+            if (s2 <= stopSpeed2) b.coastStill += dt;
+            else b.coastStill = 0;
+
+            if (b.coastStill >= stopHold) {
+              b.coasting = false;
+              b.coastStill = 0;
+
+              // start gently (no snap)
+              const a = Math.random() * Math.PI * 2;
+              const sp = 18 + Math.random() * 20;
+              b.wvx = Math.cos(a) * sp;
+              b.wvy = Math.sin(a) * sp;
+              b.nextWander = nowMs + (600 + Math.random() * 1200);
+            }
+          }
+        }
+
+        gridBegin();
+        for (let i = 0; i < bubbles.length; i++) gridInsert(i);
+        collideResolve();
+      }
+
+      function render(alpha) {
+        for (let i = 0; i < bubbles.length; i++) {
+          const b = bubbles[i];
+          const x = b.drag.active ? b.x : (b.px + (b.x - b.px) * alpha);
+          const y = b.drag.active ? b.y : (b.py + (b.y - b.py) * alpha);
+          b.el.style.transform = `translate3d(${(x - BUBBLE_R)}px, ${(y - BUBBLE_R)}px, 0)`;
+        }
+      }
+
+      function tick(t) {
+        const dtFrame = Math.min(0.05, (t - lastT) / 1000);
+        lastT = t;
+
+        obstacleTimer += dtFrame;
+        if (obstacleTimer > 0.14) {
+          updateMapLayerBounds();
+          updateObstacles();
+          obstacleTimer = 0;
+        }
+
+        drawStars(t);
+
+        acc += dtFrame;
+        let steps = 0;
+        while (acc >= FIXED && steps < MAX_STEPS) {
+          step(FIXED, t);
+          acc -= FIXED;
+          steps++;
+        }
+
+        const alpha = clamp(acc / FIXED, 0, 1);
+        render(alpha);
+
+        requestAnimationFrame(tick);
+      }
+
+      function onResize() {
+        resizeStars();
+        updateMapLayerBounds();
+        updateObstacles();
+      }
+      window.addEventListener('resize', onResize, { passive: true });
+
+      // Init
+      onResize();
+
+
+      (async () => {
+        updateObstacles();
+        const imgs = await discoverImages(100);
+
+        if (imgs.length) {
+          const positions = generateInitialPositions(imgs.length);
+
+          const frag = document.createDocumentFragment();
+          for (let i = 0; i < imgs.length; i++) {
+            frag.appendChild(makeBubble(imgs[i], positions[i]));
+          }
+          bubbleLayer.appendChild(frag);
+        }
+
+        requestAnimationFrame(tick);
+      })();
+    })();
+  </script>
+</body>
+</html>
