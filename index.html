@@ -147,21 +147,30 @@
     }
 
     #note {
-      padding: 10px 12px;
-      border-radius: 12px;
-      font-size: 25px;
-      color: rgba(190,190,215,0.72);
-      background: rgba(255, 255, 255, 0.10);
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.14);
+        padding: 10px 12px;
+        border-radius: 12px;
 
-      backdrop-filter: blur(5px) saturate(140%) brightness(1.15);
-      -webkit-backdrop-filter: blur(5px) saturate(140%) brightness(1.15);
+        /* Base size (JS will animate down to 0.75x if it wraps) */
+        font-size: 25px;
+        line-height: 1.2;
+        transition: font-size 1600ms ease;
 
-      max-width: min(92vw, 980px);
-      text-align: center;
-      pointer-events: none;
-      display: inline-block;
-    }
+        color: #cc4545;
+        font-weight: 600;
+        background: rgba(255, 255, 255, 0.10);
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.14);
+
+        backdrop-filter: blur(5px) saturate(140%) brightness(1.15);
+        -webkit-backdrop-filter: blur(5px) saturate(140%) brightness(1.15);
+
+        /* Keep it “hugging” the content, but still cap width */
+        display: inline-block;
+        width: fit-content;
+        max-width: min(92vw, 980px);
+
+        text-align: center;
+        pointer-events: none;
+        }
     #note em { font-style: italic; }
 
 
@@ -334,7 +343,7 @@
 
   <div id="headerLayer">
     <div id="timer">0</div>
-    <div id="note"><em>Merry Christmas, My Love</em></div>
+    <div id="note"><em><span id="noteText">Merry Christmas, My Love</span></em></div>
   </div>
 
   <script>
@@ -344,7 +353,7 @@
       const noteEl = document.getElementById('note');
       const headerLayer = document.getElementById('headerLayer');
 
-      const start = new Date('2025-08-29T16:06:47-04:00').getTime();
+      const start = new Date('2025-09-26T01:08:49-04:00').getTime();
       const fmt = (n) => n.toLocaleString(undefined, { maximumFractionDigits: 0 });
 
       function updateTimer() {
@@ -353,6 +362,149 @@
       }
       updateTimer();
       setInterval(updateTimer, 250);
+
+
+
+
+
+      // ---------------- Daily note rotation ----------------
+      const noteTextEl = document.getElementById('noteText');
+
+      // Hardcode your phrases here:
+      const PHRASES = [
+        "Merry Christmas, My Love",
+        "Thank you for being so perfect, my love",
+        "i think i have a crush on u...",
+        "arf ..?",
+        // "I can't wait to spend the rest of my life with you hehehe",
+        "My Love <3",
+        "I'm the luckiest boy in the world",
+        "good girlll ;)",
+        "myyyyy girlfrienddddd!!!",
+        "hi wifey :)))",
+        "MWAHHH!!!",
+        "I wish you were in my arms right now",
+        "I love you cutieee",
+        "I can't wait to spend the rest of my life with you hehehe",
+        "\"I think that it's worth a shot\"",
+        "It was definitely worth the shot",
+        "You make me so happy, my love",
+        "\"guys the really pretty girl called me cute!!!\"",
+        "Never thought Google Maps would take me here...",
+        "do u want a treattttt?",
+        "James and Mia!!!"
+      ];
+        // Debug day offset (starts at 0). Change this number in code to “advance days”.
+        const DEBUG_DAY_OFFSET = 3; // 3
+
+        // Override: if this is not "", it will always show this exact text.
+        const OVERRIDE_TEXT = "";
+
+        // Special rule: on every 25th day of the month, show this (unless OVERRIDE_TEXT is set).
+        const DAY_25_TEXT = "HAPPY ANNIVERSARY MY LOVEEE!!!";
+
+        const NOTE_BASE_PX = 35;
+        const NOTE_WRAP_SCALE = 0.75;
+
+        // Use UTC so 02/10/2026 is the same everywhere all day.
+        function utcDayIndex(d = new Date()) {
+        const y = d.getUTCFullYear();
+        const m = d.getUTCMonth();
+        const day = d.getUTCDate();
+        return Math.floor(Date.UTC(y, m, day) / 86400000);
+        }
+
+        // Simple deterministic PRNG (LCG) + Fisher–Yates shuffle.
+        function makeRng(seed) {
+        let x = seed >>> 0;
+        return function rand() {
+            x = (Math.imul(1664525, x) + 1013904223) >>> 0;
+            return x / 4294967296;
+        };
+        }
+
+        function permutationForCycle(n, cycle) {
+        // Deterministic seed derived from (n, cycle); same everywhere.
+        const seed =
+            (0xA5A5A5A5 ^
+            Math.imul(cycle >>> 0, 2654435761) ^
+            Math.imul(n >>> 0, 1597334677)) >>> 0;
+
+        const rnd = makeRng(seed);
+        const perm = Array.from({ length: n }, (_, i) => i);
+
+        for (let i = n - 1; i > 0; i--) {
+            const j = (rnd() * (i + 1)) | 0;
+            [perm[i], perm[j]] = [perm[j], perm[i]];
+        }
+        return perm;
+        }
+
+        function phraseForDayIndex(dayIdx) {
+        const n = PHRASES.length;
+        if (n === 0) return "";
+
+        const cycle = Math.floor(dayIdx / n);
+        const pos = dayIdx % n;
+
+        const perm = permutationForCycle(n, cycle);
+        return PHRASES[perm[pos]];
+        }
+
+        function fitNoteIfWrapped() {
+        noteEl.style.fontSize = NOTE_BASE_PX + "px";
+        requestAnimationFrame(() => {
+            // If wrapped into multiple lines, shrink to 0.75x.
+            const wraps = noteTextEl.getClientRects().length > 1;
+            if (wraps) noteEl.style.fontSize = (NOTE_BASE_PX * NOTE_WRAP_SCALE) + "px";
+        });
+        }
+
+        let lastKey = "";
+
+        function updateNoteForDay(force = false) {
+        const now = new Date();
+
+        // Highest priority: override
+        if (OVERRIDE_TEXT !== "") {
+            const key = `override:${OVERRIDE_TEXT}`;
+            if (!force && key === lastKey) return;
+            lastKey = key;
+
+            noteTextEl.textContent = OVERRIDE_TEXT;
+            fitNoteIfWrapped();
+            return;
+        }
+
+        // Next priority: every 25th day of the month (UTC)
+        if (now.getUTCDate() === 25) {
+            const key = `day25:${now.getUTCFullYear()}-${now.getUTCMonth()}-25`;
+            if (!force && key === lastKey) return;
+            lastKey = key;
+
+            noteTextEl.textContent = DAY_25_TEXT;
+            fitNoteIfWrapped();
+            return;
+        }
+
+        // Normal deterministic “randomish” selection, no repeats until exhausted:
+        const dayIdx = utcDayIndex(now) + (DEBUG_DAY_OFFSET | 0);
+        const key = `day:${dayIdx}|n:${PHRASES.length}`;
+
+        if (!force && key === lastKey) return;
+        lastKey = key;
+
+        noteTextEl.textContent = phraseForDayIndex(dayIdx);
+        fitNoteIfWrapped();
+        }
+
+        // Call once on load, then keep it current (in case the date flips while open).
+        updateNoteForDay(true);
+        setInterval(updateNoteForDay, 60_000);
+
+
+
+
 
       // ---------------- Stars (double twinkle freq + 1.5x bigger) ----------------
       const starCanvas = document.getElementById('stars');
@@ -1131,6 +1283,9 @@ function generateInitialPositions(count) {
 
       // Init
       onResize();
+      updateNoteForDay(true);
+      setInterval(updateNoteForDay, 60_000);
+
 
 
       (async () => {
